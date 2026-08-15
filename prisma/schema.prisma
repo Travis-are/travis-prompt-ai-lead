@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BusinessConfig {
+  id              String   @id @default(cuid())
+  businessName    String
+  industry        String
+  description     String?
+  website         String?
+  locations       String?
+  serviceAreas    String?
+  businessHours   String?
+  contactEmail    String?
+  contactPhone    String?
+  emergencyContact String?
+  brandTone       String   @default("professional")
+  formalityLevel  String   @default("formal")
+  greeting        String   @default("Hello")
+  wordsToUse      String?
+  wordsToAvoid    String?
+  responseLength  String   @default("concise")
+  languages       String   @default("en")
+  idealCustomer   String?
+  buyingSignals   String?
+  disqualifiers   String?
+  leadScoringRules String?
+  qualificationQuestions String?
+  followUpTiming  String   @default("1-2 days")
+  followUpLimit   Int      @default(3)
+  assignedTeam    String?
+  appointmentTypes String?
+  appointmentDuration String?
+  availableHours  String?
+  bookingLink     String?
+  minNoticePeriod String?
+  cancellationPolicy String?
+  confirmationMessage String?
+  humanContactOption String?
+  escalationEmail String?
+  escalationPhone String?
+  teamNotification String?
+  escalationCategories String?
+  responseExpectation String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ProductService {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  targetCustomer String?
+  priceRange  String?
+  availability String?
+  requirements String?
+  faq         String?
+  benefits    String?
+  restrictions String?
+  links       String?
+  configId    String
+  config      BusinessConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  name            String?
+  email           String?
+  phone           String?
+  company         String?
+  productInterest String?
+  location        String?
+  needs           String?
+  budget          String?
+  timeline        String?
+  contactMethod   String?
+  appointmentPref String?
+  consentStatus   Boolean  @default(false)
+  doNotContact    Boolean  @default(false)
+  source          String   @default("chat")
+  intent          String   @default("general")
+  leadScore       String   @default("COLD")
+  status          String   @default("new")
+  assignedTo      String?
+  nextAction      String?
+  followUpDate    DateTime?
+  appointmentDate DateTime?
+  handoffStatus   String   @default("none")
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  conversations   Conversation[]
+  followUps       FollowUp[]
+  appointments    Appointment[]
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  leadId        String?
+  lead          Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  messages      Message[]
+  detectedIntent String?
+  leadScore     String?
+  capturedInfo  String?
+  aiResponses   String?
+  escalationDecision String?
+  followUpActions String?
+  humanNotes    String?
+  approvalStatus String   @default("pending")
+  isClosed      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String
+  createdAt      DateTime     @default(now())
+}
+
+model FollowUp {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  sequenceNum Int
+  message     String
+  sentAt      DateTime?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type        String
+  date        DateTime
+  status      String   @default("requested")
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model Analytics {
+  id                    String   @id @default(cuid())
+  totalInquiries        Int      @default(0)
+  responseTime          Int      @default(0)
+  inquiriesAnswered     Int      @default(0)
+  qualifiedLeads        Int      @default(0)
+  appointmentRequests   Int      @default(0)
+  appointmentsBooked    Int      @default(0)
+  followUpCompletion    Int      @default(0)
+  humanHandoffRate      Float    @default(0)
+  unresolvedCount       Int      @default(0)
+  topQuestions          String?
+  commonObjections      String?
+  leadSources           String?
+  outcomes              String?
+  date                  DateTime @default(now()) @unique
+}
